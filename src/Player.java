@@ -105,19 +105,20 @@ public class Player extends Entity {
     }
 
     public void move(Object[][] Gametiles, String direction, String action) {
+        String lastAction = "";
         Location location = getNextLocation(direction, action);
-        System.out.println(location);
-        setLastTurnAction(this + " moved from [" + (x) + "][" + y + "] to [" + location.j + "][" + location.i + "].");
+//        System.out.println(location);
+        lastAction = this + " moved from [" + (x) + "][" + y + "] to [" + location.j + "][" + location.i + "].";
         Entity entity = getNextLocationSpot(Gametiles, direction, action);
         if (entity instanceof Trap) {
             BlockEffect blockEffect = Trap.blockEffects.get(((Trap) entity).Tag);
             HP += blockEffect.HP;
             score += blockEffect.score;
-            setLastTurnAction(this + " moved from [" + x + "][" + (y) + "] to [" + location.j + "][" + location.i + "] stepped on a " + blockEffect.title + " and lost " + Math.abs(blockEffect.HP) + " life and " + Math.abs(blockEffect.score) + " scores. ");
+            lastAction = this + " moved from [" + x + "][" + (y) + "] to [" + location.j + "][" + location.i + "] stepped on a " + blockEffect.title + " and lost " + Math.abs(blockEffect.HP) + " life and " + Math.abs(blockEffect.score) + " scores. ";
         } else if (entity instanceof Treasure) {
             score += 10;
             Treasure.reSpawn(Gametiles);
-            setLastTurnAction(this + " moved from [" + x + "][" + (y) + "] to [" + location.j + "][" + location.i + "] picked up treasure and obtained +10 Scores. ");
+            lastAction = this + " moved from [" + x + "][" + (y) + "] to [" + location.j + "][" + location.i + "] picked up treasure and obtained +10 Scores. ";
         } else if (entity instanceof Wall) {
             if (action.equals("D")) {
                 Wall wall = (Wall) entity;
@@ -125,7 +126,7 @@ public class Player extends Entity {
                     Gametiles[location.i][location.j] = null;
                     location.i = this.y;
                     location.j = this.x;
-                    setLastTurnAction(this + " moved from [" + x + "][" + (y) + "] to [" + location.j + "][" + location.i + "] destroyed wall. ");
+                    lastAction = this + " moved from [" + x + "][" + (y) + "] to [" + location.j + "][" + location.i + "] destroyed wall. ";
                 } else if (wall.Tag.equals("UWL")) {
                     System.out.println("Cant break Unbreakable Wall.Choose another choice");
                 }
@@ -138,24 +139,38 @@ public class Player extends Entity {
             switch (rnd) {
                 case Spinner.RANDOM_TYPE_GIVE_ABILITY:
                     rnd = new Random().nextInt(3);
-                    if (rnd == 0) LongJumpCount++;
-                    else if (rnd == 1) DestructionCount++;
-                    else SpawnTrapCount++;
+                    if (rnd == 0){
+                        LongJumpCount++;
+                        lastAction = "//TODO create message  got 1 free long jump";
+                    }
+                    else if (rnd == 1){
+                        DestructionCount++;
+                        lastAction = "//TODO create message got 1 free desctuction ";
+                    }
+                    else{
+                        SpawnTrapCount++;
+                        lastAction = "//TODO create message got 1 spawn";
+                    }
                     break;
+
                 case Spinner.RANDOM_TYPE_GO_BACK_TO_START:
                     location.i = this.originX;
                     location.j = this.originY;
+                    lastAction = "//TODO player returned to start location";
                     break;
                 case Spinner.RANDOM_TYPE_GO_BACK_ENEMY_TO_START:
                     Player pl = getAnotherPlayer(Gametiles);
                     pl.x = pl.originX;
                     pl.y = pl.originY;
+                    lastAction = "//TODO enemy returned to start location";
                     break;
                 case Spinner.RANDOM_TYPE_CREATE_3_TNT:
                     Trap.spawnTnTTraps(Gametiles, 3);
+                    lastAction = "//TODO create 3 trap message";
                     break;
                 case Spinner.RANDOM_TYPE_DESTROY_3_TRAPS:
                     Trap.destroyNTraps(Gametiles, 3);
+                    lastAction = "//TODO destroy 3 trap message";
                     break;
             }
         } else if (entity instanceof Portal) {
@@ -164,11 +179,13 @@ public class Player extends Entity {
             if (locations.isEmpty()) {
                 location.i = this.y;
                 location.j = this.x;
+                lastAction = "//TODO cant use portal beacause target portal doesnt have free spot ";
             } else {
                 int rnd = new Random().nextInt(locations.size());
                 Location location1 = locations.get(rnd);
                 location.i = location1.i;
                 location.j = location1.j;
+                lastAction = "//TODO portal used message";
             }
         } else if (entity == null) {
             if (action.equals("S")) {
@@ -176,7 +193,7 @@ public class Player extends Entity {
                 Gametiles[location.i][location.j] = new Trap(location.j, location.i, trapType, true);
                 location.i = this.y;
                 location.j = this.x;
-                setLastTurnAction(this + " moved from [" + x + "][" + (y) + "] to [" + location.j + "][" + location.i + "] created trap. ");
+                lastAction = this + " moved from [" + x + "][" + (y) + "] to [" + location.j + "][" + location.i + "] created trap. ";
             }
         }
         System.out.println(location);
@@ -184,6 +201,7 @@ public class Player extends Entity {
         Gametiles[y][x] = null;
         x = location.j;
         y = location.i;
+        setLastTurnAction(lastAction);
     }
 
 
